@@ -30,7 +30,7 @@ body {
     position: relative;
 }
 
-#description {
+#description, #warning {
     font-size: 18px;
     max-width: 962px;
 }
