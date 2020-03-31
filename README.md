@@ -24,4 +24,4 @@ Take a look at the [live demo](https://caboodle-tech.github.io/map-area/index.ht
 
 ### Is there a demo?
 
-You must of not read this page? [CLICK HERE TO SEE A DEMO](https://caboodle-tech.github.io/map-area/index.html).
+You must of not read this page: [CLICK HERE TO SEE A DEMO](https://caboodle-tech.github.io/map-area/index.html).
