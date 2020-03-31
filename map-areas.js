@@ -22,22 +22,149 @@
  */
 
 /**
- * This was the alpha / beta version of MapArea that proved I could get the
- * concept working. Figuring out polygons was the hard part. I went down
- * several rabit holes like CSS clip paths but once I got the SVG idea working
- * it made sense to re-write the whole thing to use only SVG. It's cleaner and
- * has great cross browser support.
+ *  Ingests HTML map areas and creates an SVG clone.
  *
- * I am an advocate of learning -- I'm currently an Adjunct Professor at the
- * time I'm writing this -- and have included this early concept in the main
- * repo in the hopes that it can be a useful resource to someone.
+ *  HTML map areas can not be styled directly in any kind of cross browser compatible way.
+ *  This module solves that problem by placing SVGs over the areas so you can style them
+ *  and hook to them until your hearts content. Any CSS or JavaScript code your used to
+ *  using should be fine to use on the SVG areas.
  *
  * @author Christopher Keers <source@caboodle.tech>
- * @version 0.0.0-rc
+ * @version 1.0.0
  * @module MapArea
  */
 var MapArea = function () {
     'use strict';
+
+    /**
+     * When a user clicks on our created areas we pass the click throuh to the original area.
+     * @private
+     * @param {element} area - An HTML element.
+     */
+    var passthroughClick = function( area ){
+        area.click();
+    };
+
+    /**
+     * Ingest a map element and create shapes on a SVG element for each area found. This will then
+     * place the SVG above the image with a view box set to the images size so the shapes in the
+     * SVG are perfectly aligned over their HTML map area counterparts.
+     * @private
+     * @param {element} map - The map element being ingested.
+     * @param {element} img - The image this map applies to.
+     * @parma {object} options - An object with settings that will be used by MapArea when creating areas.
+     * @param {string} options.name - The name of the map area to ingest and process.
+     * @param {string} [options.className] - Class(es) to add to each area that is created.
+     */
+    var processAreas = function( map, img, options ){
+
+        // Setup variables for the loop.
+        var wrapper = img.parentElement;
+        var areas = map.querySelectorAll('area');
+        var len = areas.length;
+        var viewBox = '0 0 ' + img.width + ' ' + img.height;
+        var coords, position, posLen, y, flag;
+
+        var topPos, leftPos, width, height;
+
+        var shape;
+
+        // Do we need to add a class to these areas?
+        var className = '';
+        if( options.className ){
+            className = options.className;
+        }
+
+        // Create the SVG wrapper.
+        var svg = document.createElementNS( 'http://www.w3.org/2000/svg', 'svg' );
+        svg.setAttribute( 'viewBox', viewBox );
+        svg.setAttribute( 'xmlns', 'http://www.w3.org/2000/svg' );
+        svg.setAttribute( 'style', 'position: absolute;' );
+
+        // Loop and process each area.
+        for( var x = 0; x < len; x++ ){
+
+            // Turn the coordinates string into an array.
+            coords = areas[x].coords;
+            coords = coords.replace( / /g, '' );
+            coords = coords.split(',');
+
+            switch( areas[x].shape ){
+                case 'rect':
+                case 'rectangle':
+
+                    // We must create the visual width by subtracting the width from the left offset.
+                    leftPos = parseInt( coords[0] );
+                    width = ( parseInt( coords[2] ) - parseInt( coords[0] ) );
+                    if( width < 0 ){
+                        // If our width is negative change it to positive and move the left (x) point.
+                        width *= -1;
+                        leftPos = leftPos - width;
+                    }
+
+                    // We must create the visual height by subtracting the height from the top offset.
+                    topPos = parseInt( coords[1] );
+                    height = ( parseInt( coords[3] ) - parseInt( coords[1] ) );
+                    if( height < 0 ){
+                        // If our height is negative change it to positive and move the top (y) point.
+                        height *= -1;
+                        topPos = topPos - height;
+                    }
+
+                    // Build a rectangle.
+                    shape = document.createElementNS( 'http://www.w3.org/2000/svg', 'rect' );
+                    shape.setAttribute( 'x', leftPos );
+                    shape.setAttribute( 'y', topPos );
+                    shape.setAttribute( 'width', width );
+                    shape.setAttribute( 'height', height );
+                    shape.setAttribute( 'class', className + ' rectangle' );
+                    flag = true;
+                    break;
+                case 'circ':
+                case 'circle':
+
+                    // Build a circle.
+                    shape = document.createElementNS( 'http://www.w3.org/2000/svg', 'circle' );
+                    shape.setAttribute( 'cx', coords[0] );
+                    shape.setAttribute( 'cy', coords[1] );
+                    shape.setAttribute( 'r', coords[2] );
+                    shape.setAttribute( 'class', className + ' circle' );
+                    flag = true;
+                    break;
+                case 'poly':
+                case 'polygon':
+
+                    // Coordinates need to be put into pairs for a polygon.
+                    position = '';
+                    posLen = coords.length;
+                    for( y = 0; y < posLen; y += 2 ){
+                        position += coords[y] + ',' + coords[y+1] + ' ';
+                    }
+                    position = position.trim();
+
+                    // Build a polygon shape.
+                    shape = document.createElementNS( 'http://www.w3.org/2000/svg', 'polygon' );
+                    shape.setAttribute( 'points', position );
+                    shape.setAttribute( 'fill', 'transparent' );
+                    shape.setAttribute( 'class', className + ' polygon' );
+                    flag = true;
+                    break;
+            }
+
+            // Only add the shape if we have a proper element to add.
+            if( flag ){
+
+                // Add the click event, hover effect, and title to this shape.
+                shape.addEventListener( 'click', passthroughClick.bind( null, areas[x] ) );
+                shape.setAttribute( 'style', 'cursor: pointer;' );
+                shape.innerHTML = '<title>' + areas[x].title + '</title>';
+                svg.appendChild( shape );
+            }
+        }
+
+        // Add the SVG element before (in front of) the image.
+        wrapper.insertBefore( svg, wrapper.firstElementChild );
+    };
 
     var module = {
         /**
@@ -46,6 +173,7 @@ var MapArea = function () {
          * @param {object} options - An object with settings that will be used by MapArea when creating areas.
          * @param {string} options.name - The name of the map area to ingest and process.
          * @param {string} [options.className] - Class(es) to add to each area that is created.
+         * @returns {boolean} True if it appears we have everything for MapArea to work, false if an element is missing.
          */
         init: function( options ){
             var map, img;
@@ -55,171 +183,13 @@ var MapArea = function () {
                     img = document.querySelector( 'img[usemap="#' + options.name + '"]' );
                     if( img ){
                         img.parentElement.style.position = 'relative';
-                        this.processAreas( map, img, options );
+                        processAreas( map, img, options );
                         return true;
                     }
                 }
             }
             return false;
-        },
-        /**
-         * When a user clicks on our created areas we pass the click throuh to the original area.
-         * @method passthroughClick
-         * @param {element} area - An HTML element.
-         */
-        passthroughClick: function( area ){
-            area.click();
-        },
-        /**
-         * @method processAreas
-         * @param {element} map - The map element being injested.
-         * @param {element} img - The image this map applies to.
-         * @parma {object} options - An object with settings that will be used by MapArea when creating areas.
-         * @param {string} options.name - The name of the map area to ingest and process.
-         * @param {string} [options.className] - Class(es) to add to each area that is created.
-         */
-        processAreas: function( map, img, options ){
-
-            // Setup variables for the loop.
-            var wrapper = img.parentElement;
-            var areas = map.querySelectorAll('area');
-            var len = areas.length;
-            var viewBox = '0 0 ' + img.width + ' ' + img.height;
-            var coords, newNode, topPos, leftPos, width, height, posLen, position, flag;
-
-            // Do we need to add a class to these areas?
-            var className = '';
-            if( options.className ){
-                className = options.className;
-            }
-
-            // Loop and process each area.
-            for( var x = 0; x < len; x++ ){
-
-                coords = areas[x].coords;
-                coords = coords.replace( / /g, '' );
-                coords = coords.split(',');
-
-                /**
-                 * NOTES:
-                 *
-                 * If we need to process a polygon we have to make an SVG. There is
-                 * no easy way to make a cross browser polygon shape that can be
-                 * interacted with like a div.
-                 *
-                 * For the SVG creation to work properly you must use createElementNS
-                 * and setAttribute to attach most things. We can not assign
-                 * attributes like you would with a div.
-                 */
-
-                if( areas[x].shape !== 'poly' && areas[x].shape !== 'polygon' ){
-
-                    newNode = document.createElement('div');
-                    newNode.style.cursor = 'pointer';
-                    newNode.title = areas[x].title;
-                    newNode.addEventListener( 'click', this.passthroughClick.bind( null, areas[x] ) );
-
-                } else {
-
-                    newNode = document.createElementNS( 'http://www.w3.org/2000/svg', 'svg' );
-                    newNode.setAttribute( 'viewBox', viewBox );
-                    newNode.setAttribute( 'xmlns', 'http://www.w3.org/2000/svg' );
-
-                }
-
-                newNode.style.position = 'absolute';
-
-                /**
-                 * NOTES:
-                 *
-                 * All areas are hard-coded with a background color so I could see
-                 * them well testing and not have to make a CSS file. In the
-                 * production version this would have been removed.
-                 *
-                 * When making a rectangle or circle we have to watch for negative
-                 * numbers. If a width or height comes our negative that means we
-                 * need to jump the shape back (left or top) by the width or height.
-                 */
-
-                switch( areas[x].shape ){
-                    case 'rect':
-                    case 'rectangle':
-                        topPos = parseInt( coords[1] );
-                        leftPos = parseInt( coords[0] );
-                        width = ( parseInt( coords[2] ) - parseInt( coords[0] ) );
-                        if( width < 0 ){
-                            width *= -1;
-                            leftPos = leftPos - width;
-                        }
-                        height = ( parseInt( coords[3] ) - parseInt( coords[1] ) );
-                        if( height < 0 ){
-                            height *= -1;
-                            topPos = topPos - height;
-                        }
-                        newNode.style.top = topPos + 'px';
-                        newNode.style.left = leftPos + 'px';
-                        newNode.style.width = width + 'px';
-                        newNode.style.height = height + 'px';
-                        newNode.className = className + ' rectangle';
-                        newNode.title = areas[x].title;
-                        flag = true;
-                        break;
-                    case 'circ':
-                    case 'circle':
-                        topPos = parseInt( coords[1] ) - parseInt( coords[2] );
-                        leftPos = ( parseInt( coords[0] ) - parseInt( coords[2] ) );
-                        width = ( parseInt( coords[2] ) * 2 );
-                        if( width < 0 ){
-                            width *= -1;
-                            leftPos = leftPos - width;
-                        }
-                        height = ( parseInt( coords[2] ) * 2 );
-                        if( height < 0 ){
-                            height *= -1;
-                            topPos = topPos - height;
-                        }
-                        newNode.style.top = topPos + 'px';
-                        newNode.style.left = leftPos + 'px';
-                        newNode.style.width = width + 'px';
-                        newNode.style.height = height + 'px';
-                        newNode.style.borderRadius = '50%';
-                        newNode.className = className + ' circle';
-                        flag = true;
-                        break;
-                    case 'poly':
-                    case 'polygon':
-
-
-                        /**
-                         * NOTES:
-                         *
-                         * I never finished cleaning up this section because I realized
-                         * we should just use SVG for everything.
-                         */
-
-                        position = '';
-                        posLen = coords.length;
-                        for( var y = 0; y < posLen; y += 2 ){
-                            position += coords[y] + ',' + coords[y+1] + ' ';
-                        }
-                        position = position.trim();
-                        var svgPoly = document.createElementNS( 'http://www.w3.org/2000/svg', 'polygon' );
-                        svgPoly.setAttribute( 'points', position );
-                        svgPoly.setAttribute( 'fill', 'transparent' );
-                        svgPoly.setAttribute( 'class', className + ' polygon' );
-                        svgPoly.innerHTML = '<title>' + areas[x].title + '</title>';
-                        svgPoly.style.cursor = 'pointer';
-                        svgPoly.addEventListener( 'click', this.passthroughClick.bind( null, areas[x] ) );
-                        newNode.appendChild( svgPoly );
-                        flag = true;
-                        break;
-                }
-
-                if( flag ){
-                    wrapper.insertBefore( newNode, wrapper.firstElementChild );
-                }
-            }
-        },
+        }
     };
     return module;
 };
