@@ -3,8 +3,8 @@ Map Area was designed to solve a common problem developers have when using HTML 
 
 Map areas can not be styled directly in any kind of cross browser compatible way. This module solves that problem by placing SVGs over the areas so you can style them and hook to them until your hearts content. Any CSS or JavaScript code your used to using should be fine to use.
 
-### tl;dr
-This is a JavaScript module that fixes the styling problem with HTML [\<map\>](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/map) and [\<area\>](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/area) elements by placing SVGs over them. A demo is worth a thousand words though so check the demo for more information.
+### tl;dr ([demo](https://caboodle-tech.github.io/map-area/index.html))
+This is a JavaScript module that fixes the styling problem with HTML [\<map\>](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/map) and [\<area\>](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/area) elements by placing SVGs over them. A demo is worth a thousand words though so [check the demo](https://caboodle-tech.github.io/map-area/index.html) for more information.
 
 ### What are HTML map areas?
 
@@ -20,4 +20,8 @@ The HTML [\<map\>](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/map
 
 HTML map areas are commonly used as a form of navigation. For example, you could highlight areas of a digital menu and link to more information or pictures of a menu item. Another common use is for maps. You can highlight countries, regions, or points of interest and load content or navigate to a page based on what a user clicks on.
 
-Take a look at the live demo for a real world example.
+Take a look at the [live demo](https://caboodle-tech.github.io/map-area/index.html) for a real world example.
+
+### Is there a demo?
+
+You must of not read this page? [CLICK HERE TO SEE A DEMO](https://caboodle-tech.github.io/map-area/index.html).
