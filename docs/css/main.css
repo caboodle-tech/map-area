@@ -30,6 +30,11 @@ body {
     position: relative;
 }
 
+#img-wrapper img {
+    -webkit-filter: drop-shadow(5px 5px 5px rgba(0, 0, 0, .3));
+    filter: drop-shadow(3px 3px 3px rgba(0, 0, 0, .3));
+}
+
 #description, #warning {
     font-size: 18px;
     max-width: 962px;

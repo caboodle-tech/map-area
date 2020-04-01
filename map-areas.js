@@ -30,7 +30,7 @@
  *  using should be fine to use on the SVG areas.
  *
  * @author Christopher Keers <source@caboodle.tech>
- * @version 1.0.0
+ * @version 1.0.1
  * @module MapArea
  */
 var MapArea = function () {
@@ -79,7 +79,7 @@ var MapArea = function () {
         var svg = document.createElementNS( 'http://www.w3.org/2000/svg', 'svg' );
         svg.setAttribute( 'viewBox', viewBox );
         svg.setAttribute( 'xmlns', 'http://www.w3.org/2000/svg' );
-        svg.setAttribute( 'style', 'position: absolute;' );
+        svg.setAttribute( 'style', 'position: absolute; z-index: 9000;' );
 
         // Loop and process each area.
         for( var x = 0; x < len; x++ ){
