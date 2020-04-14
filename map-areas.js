@@ -2,13 +2,14 @@
  * MapArea
  * https://github.com/caboodle-tech/map-area
  *
- * Version: 1.0.3
+ * Version: 2.0.0
  *
  * Copyright Christopher Keers (Caboodle Tech Inc)
  * https://github.com/blizzardengle (https://github.com/caboodle-tech)
  *
  * Released under the MIT license.
- * Date: 2020-03-31
+ * Released: 2020-03-31
+ * Updated: 2020-04-14
  */
 
 /**
@@ -20,7 +21,7 @@
  *  your used to using should be fine to use on the SVG areas.
  *
  * @author Christopher Keers <source@caboodle.tech>
- * @version 1.0.3
+ * @version 2.0.0
  * @module MapArea
  */
 var MapArea = function () {
@@ -32,7 +33,9 @@ var MapArea = function () {
      * @private
      */
     var lastResize;
-    var maps = [];
+    var maps = {
+        'keys': []
+    };
     var resizeInterval;
 
     /**
@@ -48,20 +51,7 @@ var MapArea = function () {
                 clearInterval( resizeInterval );
                 resizeInterval = '';
                 lastResize = '';
-                var x, remake = [];
-                // Loop through all the recorded maps and remove their SVG element.
-                for( x = 0; x < maps.length; x++ ){
-                    // Remove the old SVG from the page.
-                    maps[x][0].parentNode.removeChild( maps[x][0] );
-                    maps[x][0] = null; // Dereference the old SVG area so it is garbage collected.
-                    remake.push( [ maps[x][1], maps[x][2], maps[x][3] ] );
-                }
-                // Insure garbage collection happens by dereferencing the whole maps array.
-                maps = [];
-                // Now loop and recreate the SVG's for all the maps.
-                for( x = 0; x < remake.length; x++ ){
-                    processAreas( remake[x][0], remake[x][1], remake[x][2] );
-                }
+                updateAllMaps();
             }
         }
         lastResize = date.getTime();
@@ -91,22 +81,23 @@ var MapArea = function () {
      */
     var processAreas = function( map, img, options ){
 
+        // Make sure the images parent (wrapper) is positioned relative of everything risks breaking.
+        img.parentElement.style.position = 'relative';
+
         // Setup variables for the loop.
         var wrapper = img.parentElement;
         var areas = map.querySelectorAll('area');
         var len = areas.length;
         var viewBox = '0 0 ' + img.naturalWidth + ' ' + img.naturalHeight;
         var style = 'width: ' + img.naturalWidth + 'px; height: ' + img.naturalHeight + 'px;';
-        var coords, position, posLen, y, flag;
-
-        var topPos, leftPos, width, height;
-
-        var shape;
+        var coords, position, posLen, y, flag, topPos, leftPos, width, height, shape;
 
         // Do we need to add a class to these areas?
-        var className = '';
+        var className = 'map-area';
         if( options.className ){
             className = options.className;
+        } else {
+            options.className = className;
         }
 
         /**
@@ -123,7 +114,8 @@ var MapArea = function () {
         svg.setAttribute( 'style', 'position: absolute; z-index: 9000; overflow: visible; ' + style );
 
         // Keep a record of the SVG and original settings in case there is a window resize.
-        maps.push( [ svg, map, img, options ] );
+        maps[ options.uid ] = [ svg, map, img, options ];
+        maps.keys.push( options.uid );
 
         // Loop and process each area.
         var x, y;
@@ -241,29 +233,167 @@ var MapArea = function () {
         }
     };
 
+    /**
+     * Creates a semi-unique ID for use as short term ID's. Since these will most likely
+     * be used for HTML ID's we ensure the first character is always a letter for compatibility
+     * with HTML 4.
+     *
+     * @private
+     * @param {number} length Optional parameter that allows you to choose the ID length; 5 is the hardcoded minimum.
+     */
+    var uid = function( length ){
+        // Ensure we have an actual number and shuffle the base62 alphabet.
+        length = parseInt( length );
+        if( isNaN( length ) || length < 5 ){
+            length = 5;
+        }
+        var firstChar = shuffle(['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z','a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z']);
+        var alphabet = shuffle(['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z','a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z','0','1','2','3','4','5','6','7','8','9']);
+
+        // Create a UID.
+        var uid = firstChar[ Math.floor( Math.random() * 51 ) ];
+        var length = length - 1;
+        var index = 0;
+        for( var x = 0; x < length; x++ ){
+            // JavaScript is not great at random numbers help it a bit.
+            index = Math.floor( Math.random() * 61 ) + index;
+            if( index > 61 ){ index = index % 61; }
+            uid += alphabet[ index ];
+        }
+
+        /**
+        * Private function. Fisher-Yates shuffle for the base62 alphabet.
+        * Code by the StackOverflow community.
+        *
+        * @param {array} array The array you would like to shuffle
+        */
+        function shuffle( array ){
+            var currentIndex = array.length, temporaryValue, randomIndex;
+            // While there remain elements to shuffle.
+            while (0 !== currentIndex) {
+                // Pick a remaining element.
+                randomIndex = Math.floor( Math.random() * currentIndex );
+                currentIndex -= 1;
+                // And swap it with the current element.
+                temporaryValue = array[ currentIndex ];
+                array[currentIndex] = array[ randomIndex ];
+                array[randomIndex] = temporaryValue;
+            }
+            return array;
+        }
+        return uid;
+    };
+
+    /**
+     * Update all maps that have been injested. This will force a recaluculation of all map area and SVG coordinates.
+     *
+     * @private
+     */
+    var updateAllMaps = function(){
+        var x, remake = [];
+        // Loop through all the recorded maps and remove their SVG element.
+        for( x = 0; x < maps.keys.length; x++ ){
+            // Remove the old SVG from the page.
+            maps[ maps.keys[x] ][0].parentNode.removeChild( maps[ maps.keys[x] ][0] );
+            maps[ maps.keys[x] ][0] = null; // Force garbage collection.
+            remake.push( [ maps[ maps.keys[x] ][1], maps[ maps.keys[x] ][2], maps[ maps.keys[x] ][3] ] );
+            maps[ maps.keys[x] ] = []; // Force garbage collection.
+        }
+        // Reset our keys array or they will get duplicated when we recreate the maps.
+        maps.keys = [];
+        // Now loop and recreate the SVG's for all the maps.
+        for( x = 0; x < remake.length; x++ ){
+            processAreas( remake[x][0], remake[x][1], remake[x][2] );
+        }
+    };
+
+    /**
+     * Update the specified map. This will force a recaluculation of the map area and SVG coordinates.
+     *
+     * @param {string} mapName The ID of the MapArea to update.
+     */
+    var updateMap = function( mapName ){
+        if( maps[ mapName ] ){
+            // Remove this ID from the key list.
+            maps.keys.splice( maps.keys.indexOf( maps[ mapName ] ), 1 );
+            // Remove the SVGs from the page.
+            maps[ mapName ][0].parentNode.removeChild( maps[ mapName ][0] );
+            // Wipe this map index to force garbage collection.
+            maps[ mapName ][0] = null;
+            // Now remake this map area.
+            processAreas( maps[ mapName ][1], maps[ mapName ][2], maps[ mapName ][3] );
+        }
+    };
+
     var module = {
         /**
-         * Initialize a new MapArea module.
-         * @method init
+         * Initialize a new MapArea for all map areas on the page.
+         *
+         * @method addAll
+         * @param {object} options - An object with settings that will be used by MapArea when creating areas.
+         * @param {string} [options.name] - Ignored.
+         * @param {string} [options.className] - Class(es) to add to each area that is created; map-area will be used by default.
+         * @returns {array} - An array of the unique IDs assigned to the injested map areas; you can use this to force an update of the map(s).
+         */
+        addAll: function( options ){
+            var map, img, usemap, ids = [];
+            if( ! options ){
+                options = {};
+            }
+            var maps = document.querySelectorAll( '[usemap]' );
+            for( var x = 0; x < maps.length; x++ ){
+                img = maps[x];
+                usemap = img.useMap;
+                if( usemap ){
+                    options.uid = uid();
+                    options.name = usemap.replace( '#', '' );
+                    map = document.querySelector( 'map[name="' + options.name + '"]' );
+                    processAreas( map, img, options );
+                    ids.push( options.uid );
+                }
+            }
+            return ids;
+        },
+        /**
+         * Initialize a new MapArea.
+         *
+         * @method addMap
          * @param {object} options - An object with settings that will be used by MapArea when creating areas.
          * @param {string} options.name - The name of the map area to ingest and process.
-         * @param {string} options.className - Class(es) to add to each area that is created.
-         * @returns {boolean} True if it appears we have everything for MapArea to work, false if an element is missing.
+         * @param {string} [options.className] - Class(es) to add to each area that is created; map-area will be used by default.
+         * @returns {string} - A unique ID that was assigned to this map; you can use this to force an update of the map.
          */
-        init: function( options ){
+        addMap: function( options ){
             var map, img;
             if( options.name ){
                 map = document.querySelector( 'map[name="' + options.name + '"]' );
                 if( map ){
                     img = document.querySelector( 'img[usemap="#' + options.name + '"]' );
                     if( img ){
-                        img.parentElement.style.position = 'relative';
+                        options.uid = uid();
                         processAreas( map, img, options );
-                        return true;
+                        return options.uid;
                     }
                 }
             }
-            return false;
+            return;
+        },
+        /**
+         * Update all MapAreas on this page; this forces a recaluculation of all map area and SVG coordinates.
+         *
+         * @method updateAll
+         */
+        updateAll: function(){
+            updateAllMaps();
+        },
+        /**
+         * Update a specific MapArea based on it's ID.
+         *
+         * @method updateMap
+         * @param {string} mapName The ID of the MapArea to update; this forces a recaluculation of the map area and SVG coordinates.
+         */
+        updateMap: function( mapName ){
+            updateMap( mapName );
         }
     };
     return module;

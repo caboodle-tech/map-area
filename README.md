@@ -44,17 +44,25 @@ var options = {
 }
 
 // Initialize the MapArea instance.
-map.init( options );
+map.addMap( options );
 ```
 You can also initialize MapArea in a condensed way:
 
 ```javascript
-map.init( {
+map.addMap( {
     name: 'image-map',
     className: 'demo-highlight'
 } );
 ```
-In either case you must supply an options object where `name` is the name of your image map and `className` is a string with a class or classes that you want added to the SVGs; `className` is what allows you to style these areas with CSS.
+Or for the truly lazy, after you have a new instance of MapArea just call:
+
+```javascript
+map.addAll( {
+    className: 'demo-highlight'
+} );
+```
+
+In every case except when calling `addAll()` you must supply an options object where `name` is the name of your image map. `className` is optional and will default to a class of `map-area` if not provided. You may provide a string with a single class, or classes separated by spaces, that you want added to the SVGs with `className`; this is what allows you to style these areas with CSS.
 
 ### Is there a demo?
 

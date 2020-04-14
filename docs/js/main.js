@@ -9,7 +9,7 @@ function runDemo(){
     }
 
     // Initialize the MapArea instance.
-    map.init( options );
+    map.addMap( options );
 
     /**
      * NOTES:
@@ -17,9 +17,9 @@ function runDemo(){
      * init() will return true if it worked or false if an error occurred.
      *
      * You could do this in a shorthand way where the options object is
-     * placed straight inside the init() call like so:
+     * placed straight inside the addMap() call like so:
      *
-     * map.init( {
+     * map.addMap( {
      *   name: 'image-map',
      *   className: 'demo-highlight'
      * } );
