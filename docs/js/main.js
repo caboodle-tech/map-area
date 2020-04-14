@@ -1,5 +1,4 @@
 function runDemo(){
-
     // Get a new instance of MapArea.
     var map = new MapArea();
 

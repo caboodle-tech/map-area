@@ -35,12 +35,21 @@ body {
     filter: drop-shadow(3px 3px 3px rgba(0, 0, 0, .3));
 }
 
-#description, #warning {
+#description {
     font-size: 18px;
     max-width: 962px;
 }
 
+#description #bottom {
+    text-align: center;
+    font-size: 20px;
+    padding: 20px;
+}
+
+#description #bottom input {
+    font-size: 20px;
+}
+
 .demo-highlight {
-    background-color: rgba(0, 0, 0, 0.55); /* Only needed for the legacy version of MapArea, */
-    fill: rgba(0, 0, 0, 0.55);
+    fill: rgba(0, 0, 0, 0.45);
 }
