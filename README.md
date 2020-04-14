@@ -30,6 +30,32 @@ HTML map areas are commonly used as a form of navigation. For example, you could
 
 Take a look at the [live demo](https://caboodle-tech.github.io/map-area/index.html) for a real world example.
 
+### How Do I Use Map Area?
+After you have added the MapArea JavaScript file to your site or project you will need to initialize it like so:
+
+```javascript
+// Get a new instance of MapArea.
+var map = new MapArea();
+
+// Setup the options for this MapArea.
+var options = {
+    name: 'image-map',
+    className: 'demo-highlight'
+}
+
+// Initialize the MapArea instance.
+map.init( options );
+```
+You can also initialize MapArea in a condensed way:
+
+```javascript
+map.init( {
+    name: 'image-map',
+    className: 'demo-highlight'
+} );
+```
+In either case you must supply an options object where `name` is the name of your image map and `className` is a string with a class or classes that you want added to the SVGs; `className` is what allows you to style these areas with CSS.
+
 ### Is there a demo?
 
 You must not have read this page: [CLICK HERE TO SEE A DEMO](https://caboodle-tech.github.io/map-area/index.html).
