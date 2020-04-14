@@ -1,7 +1,15 @@
 # Map Area
-Map Area was designed to solve a common problem developers have when using HTML [\<map\>](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/map) and [\<area\>](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/area) elements. Style! As well as UX in general.
+Map Area was designed to solve two common problems developers have when using HTML [\<map\>](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/map) and [\<area\>](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/area) elements.
 
-Map areas can not be styled directly in any kind of cross browser compatible way. This module solves that problem by placing SVGs over the areas so you can style them and hook to them until your hearts content. Any CSS or JavaScript code your used to using should be fine to use.
+1. You can not use CSS styles on map areas in any consistent cross-browser friendly way.
+2. Map areas are linked to the images size and break if that changes. Users resizing their web browser often break your map areas.
+
+Map Area solves these problems for you by:
+
+1. Redrawing your map areas in Scalable Vector Graphics (SVGs) that can be styled with CSS.
+2. Keeping an eye on the image and resizing the map areas and SVGs automatically for you.
+
+Now you should be free to add CSS or JavaScript code to map areas to your hearts content.
 
 ### tl;dr ([demo](https://caboodle-tech.github.io/map-area/index.html))
 This is a JavaScript module that fixes the styling problem with HTML [\<map\>](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/map) and [\<area\>](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/area) elements by placing SVGs over them. A demo is worth a thousand words though so [check the demo](https://caboodle-tech.github.io/map-area/index.html) for more information.
@@ -24,4 +32,4 @@ Take a look at the [live demo](https://caboodle-tech.github.io/map-area/index.ht
 
 ### Is there a demo?
 
-You must of not read this page: [CLICK HERE TO SEE A DEMO](https://caboodle-tech.github.io/map-area/index.html).
+You must not have read this page: [CLICK HERE TO SEE A DEMO](https://caboodle-tech.github.io/map-area/index.html).
